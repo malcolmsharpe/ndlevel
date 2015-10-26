@@ -27,7 +27,12 @@ class Level(object):
         print >>f, '<level bossNum="-1" music="%d" num="%d">' % (self.music, i + 1)
 
         print >>f, '<tiles>'
-        for tile in self.tiles.values():
+        # Sorting the tiles serves two purposes:
+        # 1. It's easier to inspect the output.
+        # 2. Doors can have cosmetic issues in the level editor (not when played) related to where
+        #    they appear in the XML. (Unconfirmed guess is that it happens when they show up before both
+        #    adjacent walls.)
+        for tile in sorted(self.tiles.values(), key=lambda t: (t.x, t.y)):
             tile.write(f)
         print >>f, '</tiles>'
 
@@ -60,6 +65,9 @@ class Level(object):
         self.enemies.append(enemy)
 
     def put_rect(self, x_lo, x_hi, y_lo, y_hi, zone, type, torch=0):
+        assert x_lo < x_hi
+        assert y_lo < y_hi
+
         for x in range(x_lo, x_hi):
             for y in range(y_lo, y_hi):
                 self.put_tile( Tile(x, y, zone, type, torch=torch) )

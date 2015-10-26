@@ -24,6 +24,8 @@ dungeon.name = name
 
 Room = namedtuple('Room', ['x_lo', 'x_hi', 'y_lo', 'y_hi'])
 
+PADDING = 3
+
 def gen_diag_level(floor):
     level = Level()
 
@@ -39,12 +41,16 @@ def gen_diag_level(floor):
     ROOM_MIN_HEIGHT = 4
     ROOM_MAX_HEIGHT = 6
 
-    PADDING = 3
     POP_PER_ROOM = 5
 
     enemy_pool = get_enemy_pool(floor)
 
     LAYERS = 3
+
+    # Probabilities of certain room decorations (mutually exclusive).
+    # These are only loosely based on the frequency in the original game.
+    P_POSTS = 0.2
+    P_INWARD_CORNERS = 0.4
 
     # First pass is to determine all room locations.
     # The first room will be the starting room.
@@ -117,6 +123,32 @@ def gen_diag_level(floor):
             room.y_lo, room.y_hi,
             zone, Tile.FLOOR)
 
+        # Decorate the room (maybe) with some extra walls.
+        # (The type could be made random instead.)
+        deco = random.random()
+
+        if 0 <= deco < P_POSTS:
+            post_xs = [room.x_lo + 1, room.x_hi - 2]
+            post_ys = [room.y_lo + 1, room.y_hi - 2]
+
+            for x in post_xs:
+                for y in post_ys:
+                    level.put_tile( Tile(x, y, zone, Tile.WALL_STONE) )
+        elif deco < P_POSTS + P_INWARD_CORNERS:
+            corner_xs = [room.x_lo, room.x_hi - 1]
+            corner_ys = [room.y_lo, room.y_hi - 1]
+
+            for x in corner_xs:
+                for y in corner_ys:
+                    level.put_tile( Tile(x, y, zone, Tile.WALL_DIRT) )
+
+    # Connect the rooms with corridors.
+    for i in range(LAYERS):
+        put_corridor(level, zone, main_rooms[i], up_rooms[i])
+        put_corridor(level, zone, main_rooms[i], down_rooms[i])
+        put_corridor(level, zone, up_rooms[i], main_rooms[i+1])
+        put_corridor(level, zone, down_rooms[i], main_rooms[i+1])
+
     # Put the level exit.
     exit_room = main_rooms[-1]
     exit_x = (exit_room.x_lo + exit_room.x_hi) // 2
@@ -128,11 +160,73 @@ def gen_diag_level(floor):
 
     # Make 1/6rd of dirt walls have torches at random.
     # This is the density in actual generation, but it uses a different algorithm to place them.
+    TORCH_AVG = 6
     for tile in level.tiles.values():
-        if tile.type == Tile.WALL_DIRT and random.randrange(6) == 0:
+        if tile.type == Tile.WALL_DIRT and random.randrange(TORCH_AVG) == 0:
             tile.torch = 1
 
     return level
+
+def put_corridor(level, zone, room_a, room_b):
+    # Put a passage between these two rooms. If that's not possible, crash.
+
+    P_DOOR = 0.5
+
+    x_lo = max(room_a.x_lo, room_b.x_lo)
+    x_hi = min(room_a.x_hi, room_b.x_hi)
+    y_lo = max(room_a.y_lo, room_b.y_lo)
+    y_hi = min(room_a.y_hi, room_b.y_hi)
+
+    vert = x_lo < x_hi
+    horz = y_lo < y_hi
+
+    assert vert or horz
+    assert (not vert) or (not horz)
+
+    if horz:
+        assert x_lo - x_hi == PADDING
+        co_x_lo = x_hi - 1
+        co_x_hi = x_lo + 1
+        co_y_lo = random.randrange(y_lo, y_hi)
+        co_y_hi = co_y_lo + 1
+
+        wa_x_lo = x_hi
+        wa_x_hi = x_lo
+        wa_y_lo = co_y_lo - 1
+        wa_y_hi = co_y_hi + 1
+
+        dr_x = random.choice( [x_hi, x_lo - 1] )
+        dr_y = co_y_lo
+    else: # vert
+        assert y_lo - y_hi == PADDING
+        co_x_lo = random.randrange(x_lo, x_hi)
+        co_x_hi = co_x_lo + 1
+        co_y_lo = y_hi - 1
+        co_y_hi = y_lo + 1
+
+        wa_x_lo = co_x_lo - 1
+        wa_x_hi = co_x_hi + 1
+        wa_y_lo = y_hi
+        wa_y_hi = y_lo
+
+        dr_x = co_x_lo
+        dr_y = random.choice( [y_hi, y_lo - 1] )
+
+    # Make the corridor's border walls consistently dirt. It's prettier that way.
+    level.put_rect(
+        wa_x_lo, wa_x_hi,
+        wa_y_lo, wa_y_hi,
+        zone, Tile.WALL_DIRT)
+
+    # The corridor itself.
+    level.put_rect(
+        co_x_lo, co_x_hi,
+        co_y_lo, co_y_hi,
+        zone, Tile.FLOOR)
+
+    # Maybe put in a door.
+    if random.random() < P_DOOR:
+        level.put_tile( Tile(dr_x, dr_y, zone, Tile.DOOR) )
 
 LEVELS = 3
 
