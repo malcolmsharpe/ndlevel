@@ -158,6 +158,16 @@ def gen_diag_level(floor):
     miniboss_type = random_miniboss_type(floor)
     level.put_enemy( Enemy(exit_x, exit_y, miniboss_type) )
 
+    # Populate all non-entry rooms.
+    for room in main_rooms[1:] + up_rooms + down_rooms:
+        available = []
+        for x in range(room.x_lo, room.x_hi):
+            for y in range(room.y_lo, room.y_hi):
+                if level.tiles[(x,y)].type == Tile.FLOOR:
+                    available.append( (x,y) )
+
+        randomly_put_enemies(level, enemy_pool, available, POP_PER_ROOM)
+
     # Make 1/6rd of dirt walls have torches at random.
     # This is the density in actual generation, but it uses a different algorithm to place them.
     TORCH_AVG = 6

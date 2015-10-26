@@ -1,0 +1,5 @@
+- Prettier torch layout.
+- Fill out remaining z1 enemies (ghosts, green slimes, etc.?).
+- Try to give rooms a similar _difficulty_ instead of just number of enemies.
+    (e.g. black skeletons are hard, green slimes are easy; shouldn't count equally towards spawn cap)
+- One of each miniboss?
