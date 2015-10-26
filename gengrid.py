@@ -2,6 +2,7 @@ import os.path
 import random
 
 from dungeon import *
+from util import *
 
 name = 'AGENDUNG1'
 
@@ -20,21 +21,7 @@ def gen_grid_level(floor):
     INCR = ROOM_WIDTH + PADDING
     POP_PER_ROOM = 5
 
-    # Missing Ghost, maybe some other 1-1 enemies.
-    enemy_pool = [Enemy.SLIME_BLUE, Enemy.SKELETON_WHITE, Enemy.BAT_BLUE, Enemy.MONKEY_PURPLE, Enemy.WRAITH,
-        Enemy.ZOMBIE]
-
-    if floor >= 1:
-        # medium difficulty z1 enemies
-
-        enemy_pool.extend(
-            [Enemy.SLIME_ORANGE, Enemy.SKELETON_YELLOW, Enemy.BAT_RED] )
-
-    if floor >= 2:
-        # hard difficulty z1 enemies
-
-        enemy_pool.extend(
-            [Enemy.MONKEY_WHITE, Enemy.SKELETON_BLACK] )
+    enemy_pool = get_enemy_pool(floor)
 
     X = 6
     Y = 3
@@ -72,10 +59,7 @@ def gen_grid_level(floor):
                         if (x,y) != (X-1, Y-1) or (ex,ey) != (x_0,y_0):
                             available.append( (ex, ey) )
 
-                random.shuffle(available)
-                for (ex, ey) in available[:POP_PER_ROOM]:
-                    et = random.choice(enemy_pool)
-                    level.put_enemy( Enemy(ex, ey, et) )
+                randomly_put_enemies(level, enemy_pool, available, POP_PER_ROOM)
 
     P_COR_DOOR = 0.5
 
@@ -123,14 +107,7 @@ def gen_grid_level(floor):
     exit_y = INCR * (Y-1)
     level.put_tile( Tile(exit_x, exit_y, 0, Tile.STAIRS_LOCKED) )
 
-    if floor == 0:
-        miniboss_pool = [Enemy.DIREBAT_YELLOW, Enemy.DRAGON_GREEN, Enemy.MINOTAUR_LIGHT]
-    else:
-        miniboss_pool = [Enemy.DRAGON_RED, Enemy.MINOTAUR_DARK]
-        if floor < 2:
-            miniboss_pool.append(Enemy.DIREBAT_GRAY)
-
-    miniboss_type = random.choice(miniboss_pool)
+    miniboss_type = random_miniboss_type(floor)
     level.put_enemy( Enemy(exit_x, exit_y, miniboss_type) )
 
     # Make 1/3rd of dirt walls have torches at random.
