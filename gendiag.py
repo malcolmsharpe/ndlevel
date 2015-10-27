@@ -41,8 +41,6 @@ def gen_diag_level(floor):
     ROOM_MIN_HEIGHT = 4
     ROOM_MAX_HEIGHT = 6
 
-    POP_PER_ROOM = 5
-
     enemy_pool = get_enemy_pool(floor)
 
     LAYERS = 3
@@ -160,13 +158,21 @@ def gen_diag_level(floor):
 
     # Populate all non-entry rooms.
     for room in main_rooms[1:] + up_rooms + down_rooms:
+        is_boss_room = False
+
         available = []
         for x in range(room.x_lo, room.x_hi):
             for y in range(room.y_lo, room.y_hi):
                 if level.tiles[(x,y)].type == Tile.FLOOR:
                     available.append( (x,y) )
+                elif level.tiles[(x,y)].type == Tile.STAIRS_LOCKED:
+                    is_boss_room = True
 
-        randomly_put_enemies(level, enemy_pool, available, POP_PER_ROOM)
+        pop_per_room = 5 + floor
+        if is_boss_room:
+            pop_per_room += 3
+
+        randomly_put_enemies(level, enemy_pool, available, pop_per_room)
 
     # Make 1/6rd of dirt walls have torches at random.
     # This is the density in actual generation, but it uses a different algorithm to place them.
