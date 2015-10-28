@@ -29,6 +29,9 @@ PADDING = 3
 ROOM_ENTRY = 'room_entry'
 ROOM_EXIT = 'room_exit'
 ROOM_OTHER = 'room_other'
+ROOM_ITEM = 'room_item'
+
+item_pool = ItemPool()
 
 def gen_diag_level(floor):
     level = Level()
@@ -38,6 +41,12 @@ def gen_diag_level(floor):
 
     INIT_ROOM_WIDTH = 5
     INIT_ROOM_HEIGHT = 5
+
+    ITEM_ROOM_WIDTH = 5
+    ITEM_ROOM_HEIGHT = 5
+    ITEM_ROOM_POST_SHIFT_X = 2
+    ITEM_ROOM_POST_SHIFT_Y = 0
+    ITEM_POS = [(1,0), (2,1), (3,0)]
 
     # These ranges are the same as the original game's zone 1 level generation.
     ROOM_MIN_WIDTH = 5
@@ -114,8 +123,19 @@ def gen_diag_level(floor):
         next_top = up_room.y_hi + PADDING
         next_left = down_room.x_hi + PADDING
 
+    # A room at the end for the player to select an item.
+    # Since the exit room's minimum height is 4, and the item room has height 5, it always fits provided
+    # its bottom edge is shifted down by 1 relative to the exit room.
+    exit_room = main_rooms[-1]
+    item_room_x_lo = exit_room.x_hi + PADDING
+    item_room_y_hi = exit_room.y_hi + 1
+    item_room = Room(
+        item_room_x_lo, item_room_x_lo + ITEM_ROOM_WIDTH,
+        item_room_y_hi - ITEM_ROOM_HEIGHT, item_room_y_hi,
+        ROOM_ITEM)
+
     # Put the room tiles.
-    for room in main_rooms + up_rooms + down_rooms:
+    for room in main_rooms + up_rooms + down_rooms + [item_room]:
         level.put_rect(
             room.x_lo - 2, room.x_hi + 2,
             room.y_lo - 2, room.y_hi + 2,
@@ -131,9 +151,9 @@ def gen_diag_level(floor):
             room.y_lo, room.y_hi,
             zone, Tile.FLOOR)
 
-        if room.type != ROOM_ENTRY:
+        if room.type not in [ROOM_ENTRY, ROOM_ITEM]:
             # Decorate the room (maybe) with some extra walls.
-            # (The type could be made random instead.)
+            # (The wall type could be made random instead.)
             deco = random.random()
 
             if 0 <= deco < P_POSTS:
@@ -151,15 +171,22 @@ def gen_diag_level(floor):
                     for y in corner_ys:
                         level.put_tile( Tile(x, y, zone, Tile.WALL_DIRT) )
 
+        if room.type == ROOM_ITEM:
+            # This has 1 extra wall, like the original game's boss chest area.
+            level.put_tile( Tile(
+                room.x_lo + ITEM_ROOM_POST_SHIFT_X,
+                room.y_lo + ITEM_ROOM_POST_SHIFT_Y,
+                zone, Tile.WALL_DIRT) )
+
     # Connect the rooms with corridors.
     for i in range(LAYERS):
         put_corridor(level, zone, main_rooms[i], up_rooms[i])
         put_corridor(level, zone, main_rooms[i], down_rooms[i])
         put_corridor(level, zone, up_rooms[i], main_rooms[i+1])
         put_corridor(level, zone, down_rooms[i], main_rooms[i+1])
+    put_corridor(level, zone, exit_room, item_room)
 
     # Put the level exit.
-    exit_room = main_rooms[-1]
     exit_x = (exit_room.x_lo + exit_room.x_hi) // 2
     exit_y = (exit_room.y_lo + exit_room.y_hi) // 2
     level.put_tile( Tile(exit_x, exit_y, zone, Tile.STAIRS_LOCKED) )
@@ -167,7 +194,7 @@ def gen_diag_level(floor):
     miniboss_type = random_miniboss_type(floor)
     level.put_enemy( Enemy(exit_x, exit_y, miniboss_type) )
 
-    # Populate all non-entry rooms.
+    # Populate all non-entry, non-item rooms.
     for room in main_rooms[1:] + up_rooms + down_rooms:
         available = []
         for x in range(room.x_lo, room.x_hi):
@@ -180,6 +207,11 @@ def gen_diag_level(floor):
             pop_per_room += 3
 
         randomly_put_enemies(level, enemy_pool, available, pop_per_room)
+
+    # Put items in the item room.
+    for i, (dx,dy) in enumerate(ITEM_POS):
+        item_type = item_pool.pick(floor, i)
+        level.put_item( Item(item_room.x_lo + dx, item_room.y_lo + dy, item_type, singleChoice=1) )
 
     # Make 1/6rd of dirt walls have torches at random.
     # This is the density in actual generation, but it uses a different algorithm to place them.

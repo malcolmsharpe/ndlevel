@@ -22,6 +22,7 @@ class Level(object):
         self.music = 0
         self.tiles = {} # (x,y) -> tile
         self.enemies = []
+        self.items = []
 
     def write(self, f, i):
         f.write('<level bossNum="-1" music="%d" num="%d">\n' % (self.music, i + 1))
@@ -45,6 +46,8 @@ class Level(object):
         f.write('</enemies>\n')
 
         f.write('<items>\n')
+        for item in self.items:
+            item.write(f)
         f.write('</items>\n')
 
         f.write('<chests>\n')
@@ -63,6 +66,9 @@ class Level(object):
 
     def put_enemy(self, enemy):
         self.enemies.append(enemy)
+
+    def put_item(self, item):
+        self.items.append(item)
 
     def put_rect(self, x_lo, x_hi, y_lo, y_hi, zone, type, torch=0):
         assert x_lo < x_hi
@@ -126,3 +132,16 @@ class Enemy(object):
     def write(self, f):
         f.write('<enemy beatDelay="%d" lord="%d" type="%d" x="%d" y="%d"></enemy>\n' % (
             self.beatDelay, self.lord, self.type, self.x, self.y))
+
+class Item(object):
+    def __init__(self, x, y, type, bloodCost=0.0, saleCost=0, singleChoice=0):
+        self.x = x
+        self.y = y
+        self.type = type
+        self.bloodCost = bloodCost
+        self.saleCost = saleCost
+        self.singleChoice = singleChoice
+
+    def write(self, f):
+        f.write('<item bloodCost="%.1f" saleCost="%d" singleChoice="%d" type="%s" x="%d" y="%d"></item>\n' % (
+            self.bloodCost, self.saleCost, self.singleChoice, self.type, self.x, self.y))
