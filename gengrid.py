@@ -130,4 +130,4 @@ ndpath = file('ndpath.txt', 'r').read().strip()
 outpath = os.path.join(ndpath, 'dungeons', name + '.xml')
 
 dungeon.write( file(outpath, 'w') )
-print 'Wrote dungeon to %s' % outpath
+print('Wrote dungeon to %s' % outpath)

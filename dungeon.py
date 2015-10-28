@@ -6,13 +6,13 @@ class Dungeon(object):
         self.levels = []
 
     def write(self, f):
-        print >>f, '<?xml?>'
-        print >>f, '<dungeon character="-1" name="%s" numLevels="%d">' % (self.name, len(self.levels))
+        f.write('<?xml?>\n')
+        f.write('<dungeon character="-1" name="%s" numLevels="%d">\n' % (self.name, len(self.levels)))
 
         for i, level in enumerate(self.levels):
             level.write(f, i)
 
-        print >>f, '</dungeon>'
+        f.write('</dungeon>\n')
 
     def put_level(self, level):
         self.levels.append(level)
@@ -24,9 +24,9 @@ class Level(object):
         self.enemies = []
 
     def write(self, f, i):
-        print >>f, '<level bossNum="-1" music="%d" num="%d">' % (self.music, i + 1)
+        f.write('<level bossNum="-1" music="%d" num="%d">\n' % (self.music, i + 1))
 
-        print >>f, '<tiles>'
+        f.write('<tiles>\n')
         # Sorting the tiles serves two purposes:
         # 1. It's easier to inspect the output.
         # 2. Doors can have cosmetic issues in the level editor (not when played) related to where
@@ -34,29 +34,29 @@ class Level(object):
         #    adjacent walls.)
         for tile in sorted(self.tiles.values(), key=lambda t: (t.x, t.y)):
             tile.write(f)
-        print >>f, '</tiles>'
+        f.write('</tiles>\n')
 
-        print >>f, '<traps>'
-        print >>f, '</traps>'
+        f.write('<traps>\n')
+        f.write('</traps>\n')
 
-        print >>f, '<enemies>'
+        f.write('<enemies>\n')
         for enemy in self.enemies:
             enemy.write(f)
-        print >>f, '</enemies>'
+        f.write('</enemies>\n')
 
-        print >>f, '<items>'
-        print >>f, '</items>'
+        f.write('<items>\n')
+        f.write('</items>\n')
 
-        print >>f, '<chests>'
-        print >>f, '</chests>'
+        f.write('<chests>\n')
+        f.write('</chests>\n')
 
-        print >>f, '<crates>'
-        print >>f, '</crates>'
+        f.write('<crates>\n')
+        f.write('</crates>\n')
 
-        print >>f, '<shrines>'
-        print >>f, '</shrines>'
+        f.write('<shrines>\n')
+        f.write('</shrines>\n')
 
-        print >>f, '</level>'
+        f.write('</level>\n')
 
     def put_tile(self, tile):
         self.tiles[ (tile.x, tile.y) ] = tile
@@ -92,8 +92,8 @@ class Tile(object):
         self.zone = zone
 
     def write(self, f):
-        print >>f, '<tile torch="%d" type="%d" x="%d" y="%d" zone="%d"></tile>' % (
-            self.torch, self.type, self.x, self.y, self.zone)
+        f.write('<tile torch="%d" type="%d" x="%d" y="%d" zone="%d"></tile>\n' % (
+            self.torch, self.type, self.x, self.y, self.zone))
 
 class Enemy(object):
     SLIME_GREEN = 0
@@ -124,5 +124,5 @@ class Enemy(object):
         self.lord = lord
 
     def write(self, f):
-        print >>f, '<enemy beatDelay="%d" lord="%d" type="%d" x="%d" y="%d"></enemy>' % (
-            self.beatDelay, self.lord, self.type, self.x, self.y)
+        f.write('<enemy beatDelay="%d" lord="%d" type="%d" x="%d" y="%d"></enemy>\n' % (
+            self.beatDelay, self.lord, self.type, self.x, self.y))
