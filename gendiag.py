@@ -22,9 +22,13 @@ name = 'AGENDUNG1'
 dungeon = Dungeon()
 dungeon.name = name
 
-Room = namedtuple('Room', ['x_lo', 'x_hi', 'y_lo', 'y_hi'])
+Room = namedtuple('Room', ['x_lo', 'x_hi', 'y_lo', 'y_hi', 'type'])
 
 PADDING = 3
+
+ROOM_ENTRY = 'room_entry'
+ROOM_EXIT = 'room_exit'
+ROOM_OTHER = 'room_other'
 
 def gen_diag_level(floor):
     level = Level()
@@ -68,7 +72,13 @@ def gen_diag_level(floor):
             main_width = random.randrange(ROOM_MIN_WIDTH, ROOM_MAX_WIDTH + 1)
             main_height = random.randrange(ROOM_MIN_HEIGHT, ROOM_MAX_HEIGHT + 1)
 
-        main_room = Room(next_left, next_left + main_width, next_top, next_top + main_height)
+        room_type = ROOM_OTHER
+        if i == 0:
+            room_type = ROOM_ENTRY
+        if i == LAYERS:
+            room_type = ROOM_EXIT
+
+        main_room = Room(next_left, next_left + main_width, next_top, next_top + main_height, room_type)
         main_rooms.append(main_room)
 
         if i == LAYERS:
@@ -95,8 +105,8 @@ def gen_diag_level(floor):
             up_height = random.randrange(ROOM_MIN_HEIGHT, main_height + 1)
             down_width = random.randrange(main_width, ROOM_MAX_WIDTH + 1)
 
-        up_room = Room(up_left, up_left + up_width, up_top, up_top + up_height)
-        down_room = Room(down_left, down_left + down_width, down_top, down_top + down_height)
+        up_room = Room(up_left, up_left + up_width, up_top, up_top + up_height, ROOM_OTHER)
+        down_room = Room(down_left, down_left + down_width, down_top, down_top + down_height, ROOM_OTHER)
 
         up_rooms.append(up_room)
         down_rooms.append(down_room)
@@ -121,24 +131,25 @@ def gen_diag_level(floor):
             room.y_lo, room.y_hi,
             zone, Tile.FLOOR)
 
-        # Decorate the room (maybe) with some extra walls.
-        # (The type could be made random instead.)
-        deco = random.random()
+        if room.type != ROOM_ENTRY:
+            # Decorate the room (maybe) with some extra walls.
+            # (The type could be made random instead.)
+            deco = random.random()
 
-        if 0 <= deco < P_POSTS:
-            post_xs = [room.x_lo + 1, room.x_hi - 2]
-            post_ys = [room.y_lo + 1, room.y_hi - 2]
+            if 0 <= deco < P_POSTS:
+                post_xs = [room.x_lo + 1, room.x_hi - 2]
+                post_ys = [room.y_lo + 1, room.y_hi - 2]
 
-            for x in post_xs:
-                for y in post_ys:
-                    level.put_tile( Tile(x, y, zone, Tile.WALL_STONE) )
-        elif deco < P_POSTS + P_INWARD_CORNERS:
-            corner_xs = [room.x_lo, room.x_hi - 1]
-            corner_ys = [room.y_lo, room.y_hi - 1]
+                for x in post_xs:
+                    for y in post_ys:
+                        level.put_tile( Tile(x, y, zone, Tile.WALL_STONE) )
+            elif deco < P_POSTS + P_INWARD_CORNERS:
+                corner_xs = [room.x_lo, room.x_hi - 1]
+                corner_ys = [room.y_lo, room.y_hi - 1]
 
-            for x in corner_xs:
-                for y in corner_ys:
-                    level.put_tile( Tile(x, y, zone, Tile.WALL_DIRT) )
+                for x in corner_xs:
+                    for y in corner_ys:
+                        level.put_tile( Tile(x, y, zone, Tile.WALL_DIRT) )
 
     # Connect the rooms with corridors.
     for i in range(LAYERS):
@@ -158,18 +169,14 @@ def gen_diag_level(floor):
 
     # Populate all non-entry rooms.
     for room in main_rooms[1:] + up_rooms + down_rooms:
-        is_boss_room = False
-
         available = []
         for x in range(room.x_lo, room.x_hi):
             for y in range(room.y_lo, room.y_hi):
                 if level.tiles[(x,y)].type == Tile.FLOOR:
                     available.append( (x,y) )
-                elif level.tiles[(x,y)].type == Tile.STAIRS_LOCKED:
-                    is_boss_room = True
 
         pop_per_room = 5 + floor
-        if is_boss_room:
+        if room.type == ROOM_EXIT:
             pop_per_room += 3
 
         randomly_put_enemies(level, enemy_pool, available, pop_per_room)
