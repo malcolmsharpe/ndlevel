@@ -1,3 +1,6 @@
+# This code not currently tested or working.
+# See gendiag.py for the newer layout algorithm.
+
 import os.path
 import random
 

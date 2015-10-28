@@ -3,21 +3,33 @@ import random
 from dungeon import *
 
 def get_enemy_pool(floor):
-    # Missing Ghost, maybe some other 1-1 enemies.
-    enemy_pool = [Enemy.SLIME_BLUE, Enemy.SKELETON_WHITE, Enemy.BAT_BLUE, Enemy.MONKEY_PURPLE, Enemy.WRAITH,
-        Enemy.ZOMBIE]
+    enemy_pool = [
+        Enemy.SLIME_GREEN,
+        Enemy.SLIME_BLUE,
+        Enemy.SKELETON_WHITE,
+        Enemy.BAT_BLUE,
+        Enemy.MONKEY_PURPLE,
+        Enemy.WRAITH,
+        Enemy.GHOST,
+        Enemy.ZOMBIE,
+        ]
 
     if floor >= 1:
         # medium difficulty z1 enemies
 
-        enemy_pool.extend(
-            [Enemy.SLIME_ORANGE, Enemy.SKELETON_YELLOW, Enemy.BAT_RED] )
+        enemy_pool.extend([
+            Enemy.SLIME_ORANGE,
+            Enemy.SKELETON_YELLOW,
+            Enemy.BAT_RED,
+            ])
 
     if floor >= 2:
         # hard difficulty z1 enemies
 
-        enemy_pool.extend(
-            [Enemy.MONKEY_WHITE, Enemy.SKELETON_BLACK] )
+        enemy_pool.extend([
+            Enemy.MONKEY_WHITE,
+            Enemy.SKELETON_BLACK,
+            ])
 
     return enemy_pool
 
@@ -27,21 +39,54 @@ def randomly_put_enemies(level, enemy_pool, available, pop_per_room):
         et = random.choice(enemy_pool)
         level.put_enemy( Enemy(ex, ey, et) )
 
-def random_miniboss_type(floor):
-    if floor == 0:
-        miniboss_pool = [Enemy.DIREBAT_YELLOW, Enemy.DRAGON_GREEN, Enemy.MINOTAUR_LIGHT]
-    else:
-        miniboss_pool = [Enemy.DRAGON_RED, Enemy.MINOTAUR_DARK]
-        if floor < 2:
-            miniboss_pool.append(Enemy.DIREBAT_GRAY)
+class MinibossPool(object):
+    def __init__(self):
+        self.prev_miniboss = None
 
-    return random.choice(miniboss_pool)
+    def pick(self, floor):
+        if floor == 0:
+            miniboss_pool = [
+                Enemy.DIREBAT_YELLOW,
+                Enemy.DRAGON_GREEN,
+                Enemy.MINOTAUR_LIGHT,
+                ]
+        elif floor == 1:
+            miniboss_pool = [
+                Enemy.DIREBAT_GRAY,
+                Enemy.DRAGON_RED,
+                Enemy.MINOTAUR_DARK
+                ]
+        else:
+            miniboss_pool = [
+                Enemy.DRAGON_RED,
+                Enemy.MINOTAUR_DARK
+                ]
+
+        random.shuffle(miniboss_pool)
+
+        while True:
+            miniboss = miniboss_pool.pop()
+            if miniboss != self.prev_miniboss:
+                break
+        self.prev_miniboss = miniboss
+
+        return miniboss
 
 class ItemPool(object):
     KIND_RED = 0
     KIND_PURPLE = 1
     KIND_BLACK = 2
     NKIND = 3
+
+    # Certain items are intentionally omitted from the pool despite normally being available to Cadence
+    # in the original game.
+    #
+    # These items:
+    # - ring_peace -- does nothing except the +1 empty heart, because the levels are pre-generated
+    # - ring_shadows -- no shops
+    # - ring_charisma -- no shops
+    # - ring_gold -- no shops
+    # - ring_phasing -- not combat oriented
 
     # TODO: Put more items here, and account for item strength somehow.
     POOLS = {
@@ -51,6 +96,18 @@ class ItemPool(object):
             'food_3',
             'food_4',
             'holy_water',
+            'bomb_3',
+            'war_drum',
+            'blood_drum',
+            'hud_backpack',
+            'holster',
+            'torch_1',
+            'torch_2',
+            'torch_3',
+            'torch_foresight',
+            'torch_glass',
+            'torch_infernal',
+            'torch_obsidian',
         ],
         KIND_PURPLE: [
             'ring_courage',
@@ -58,11 +115,16 @@ class ItemPool(object):
             'ring_mana',
             'ring_might',
             'ring_luck',
-            'ring_phasing',
             'ring_regeneration',
             'ring_protection',
             'ring_shielding',
             'ring_becoming',
+            'spell_fireball',
+            'spell_freeze_enemies',
+            'spell_heal',
+            'spell_bomb',
+            'spell_shield',
+            'spell_transmute',
         ],
         KIND_BLACK: [
             'weapon_titanium_dagger',

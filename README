@@ -2,9 +2,5 @@ The file ndpath.txt should contain the path to Necrodancer.
     Mac OS X: /Users/<username>/Library/Application Support/Steam/steamapps/common/Crypt of the NecroDancer/
 
 Then run
-
-    python gendiag.py (diagonal-style dungeon, and prettier)
-OR
-    python gengrid.py (grid-style dungeon)
-
+    python gendiag.py
 to create a dungeon named AGENDUNG1.

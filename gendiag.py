@@ -31,6 +31,7 @@ ROOM_EXIT = 'room_exit'
 ROOM_OTHER = 'room_other'
 ROOM_ITEM = 'room_item'
 
+miniboss_pool = MinibossPool()
 item_pool = ItemPool()
 
 def gen_diag_level(floor):
@@ -191,7 +192,7 @@ def gen_diag_level(floor):
     exit_y = (exit_room.y_lo + exit_room.y_hi) // 2
     level.put_tile( Tile(exit_x, exit_y, zone, Tile.STAIRS_LOCKED) )
 
-    miniboss_type = random_miniboss_type(floor)
+    miniboss_type = miniboss_pool.pick(floor)
     level.put_enemy( Enemy(exit_x, exit_y, miniboss_type) )
 
     # Populate all non-entry, non-item rooms.

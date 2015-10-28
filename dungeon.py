@@ -110,17 +110,27 @@ class Enemy(object):
     SKELETON_BLACK = 5
     BAT_BLUE = 6
     BAT_RED = 7
+    BAT_GREEN = 8
     MONKEY_PURPLE = 9
     MONKEY_WHITE = 10
+    GHOST = 11
     ZOMBIE = 12
     WRAITH = 13
+    RED_CHEST_MIMIC = 14
 
     DIREBAT_YELLOW = 400
     DIREBAT_GRAY = 401
     DRAGON_GREEN = 402
     DRAGON_RED = 403
+    DRAGON_BLUE = 404
+    BANSHEE_BLUE = 405
+    BANSHEE_GREEN = 406
     MINOTAUR_LIGHT = 407
     MINOTAUR_DARK = 408
+    NIGHTMARE_DARK = 409
+    NIGHTMARE_BLOOD = 410
+    MOMMY = 411
+    OGRE = 412
 
     def __init__(self, x, y, type, beatDelay=1, lord=0):
         self.x = x
