@@ -50,6 +50,10 @@ class EnemyPoolRandom(object):
     # - decoration (cauldrons, light mushrooms)
     # - drops items (chest mimic)
 
+    # Omissions 2:
+    # - Trap-type enemies (exploding mushroom, cauldron mimics)
+    # - Orange armadillos (too scary)
+
     # (type, cost)
     # Lower-cost enemies can appear in higher numbers.
     ELIGIBLE = [
@@ -81,7 +85,6 @@ class EnemyPoolRandom(object):
         (Enemy.CLONE, 150),
         (Enemy.MOLE, 250),
         (Enemy.WIGHT, 350),
-        (Enemy.MUSHROOM_EXPLODING, 150),
         (Enemy.SLIME_FIRE, 150),
         (Enemy.SLIME_ICE, 150),
         (Enemy.SKELETON_KNIGHT_WHITE, 300),
@@ -97,12 +100,9 @@ class EnemyPoolRandom(object):
         (Enemy.SHOVE_MONSTER_PURPLE, 250),
         (Enemy.YETI, 400),
         (Enemy.GHAST, 450),
-        (Enemy.CAULDRON_MIMIC_FIRE, 100),
-        (Enemy.CAULDRON_MIMIC_ICE, 100),
         (Enemy.SHOVE_MONSTER_GRAY, 350),
         (Enemy.GOBLIN_BOMBER, 300),
         (Enemy.BAT_BLACK, 350),
-        (Enemy.ARMADILLO_ORANGE, 500),
         (Enemy.BLADEMASTER_APPRENTICE, 300),
         (Enemy.BLADEMASTER_MASTER, 400),
         (Enemy.GHOUL, 550),
