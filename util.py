@@ -39,6 +39,113 @@ def randomly_put_enemies(level, enemy_pool, available, pop_per_room):
         et = random.choice(enemy_pool)
         level.put_enemy( Enemy(ex, ey, et) )
 
+# Enemy pool which selects a small number of enemies to populate with this run.
+class EnemyPoolRandom(object):
+    # Omissions 1:
+    # - anything that can't stand freely (spider, tar monster, wall mimic)
+    # - sarcophagi
+    # - skips part of the level (telemonkey)
+    # - goblin sentry
+    # - anything that doesn't spawn or only rarely (green bat, mummy)
+    # - decoration (cauldrons, light mushrooms)
+    # - drops items (chest mimic)
+
+    # (type, cost)
+    # Lower-cost enemies can appear in higher numbers.
+    ELIGIBLE = [
+        (Enemy.SLIME_GREEN, 10),
+        (Enemy.SLIME_BLUE, 50),
+        (Enemy.SLIME_ORANGE, 50),
+        (Enemy.SKELETON_WHITE, 100),
+        (Enemy.SKELETON_YELLOW, 150),
+        (Enemy.SKELETON_BLACK, 300),
+        (Enemy.BAT_BLUE, 150),
+        (Enemy.BAT_RED, 250),
+        (Enemy.MONKEY_PURPLE, 150),
+        (Enemy.MONKEY_WHITE, 300),
+        (Enemy.GHOST, 150),
+        (Enemy.ZOMBIE, 50),
+        (Enemy.WRAITH, 250),
+        (Enemy.SKELETON_ARMORED_WHITE, 200),
+        (Enemy.SKELETON_ARMORED_YELLOW, 250),
+        (Enemy.SKELETON_ARMORED_BLACK, 400),
+        (Enemy.SKELETON_MAGE_WHITE, 200),
+        (Enemy.SKELETON_MAGE_YELLOW, 300),
+        (Enemy.SKELETON_MAGE_BLACK, 400),
+        (Enemy.MUSHROOM_BLUE, 150),
+        (Enemy.MUSHROOM_PURPLE, 300),
+        (Enemy.GOLEM_LIGHT, 400),
+        (Enemy.GOLEM_DARK, 600),
+        (Enemy.ARMADILLO_WHITE, 300),
+        (Enemy.ARMADILLO_YELLOW, 400),
+        (Enemy.CLONE, 150),
+        (Enemy.MOLE, 250),
+        (Enemy.WIGHT, 350),
+        (Enemy.MUSHROOM_EXPLODING, 150),
+        (Enemy.SLIME_FIRE, 150),
+        (Enemy.SLIME_ICE, 150),
+        (Enemy.SKELETON_KNIGHT_WHITE, 300),
+        (Enemy.SKELETON_KNIGHT_YELLOW, 400),
+        (Enemy.SKELETON_KNIGHT_BLACK, 500),
+        (Enemy.ELEMENTAL_FIRE, 300),
+        (Enemy.ELEMENTAL_ICE, 300),
+        (Enemy.GOBLIN_PURPLE, 300),
+        (Enemy.GOBLIN_GRAY, 500),
+        (Enemy.BEETLE_FIRE, 350),
+        (Enemy.BEETLE_ICE, 350),
+        (Enemy.HELLHOUND, 250),
+        (Enemy.SHOVE_MONSTER_PURPLE, 250),
+        (Enemy.YETI, 400),
+        (Enemy.GHAST, 450),
+        (Enemy.CAULDRON_MIMIC_FIRE, 100),
+        (Enemy.CAULDRON_MIMIC_ICE, 100),
+        (Enemy.SHOVE_MONSTER_GRAY, 350),
+        (Enemy.GOBLIN_BOMBER, 300),
+        (Enemy.BAT_BLACK, 350),
+        (Enemy.ARMADILLO_ORANGE, 500),
+        (Enemy.BLADEMASTER_APPRENTICE, 300),
+        (Enemy.BLADEMASTER_MASTER, 400),
+        (Enemy.GHOUL, 550),
+        (Enemy.GOLEM_OOZE, 800),
+        (Enemy.HARPY, 150),
+        (Enemy.LICH_WHITE, 200),
+        (Enemy.LICH_YELLOW, 300),
+        (Enemy.LICH_BLACK, 400),
+        (Enemy.MONKEY_GREEN, 150),
+        (Enemy.PIXIE, 200),
+        (Enemy.WARLOCK_BLUE, 150),
+        (Enemy.WARLOCK_NEON, 250),
+    ]
+    BASE_COST = 200
+
+    NTYPES = 6
+
+    def __init__(self, floor):
+        cap = 1000
+        if floor == 0:
+            cap = 150
+        elif floor == 1:
+            cap = 250
+
+        eligible = []
+        for entry in self.ELIGIBLE:
+            type, cost = entry
+            if cost <= cap:
+                eligible.append(entry)
+
+        self.pool = random.sample(eligible, self.NTYPES)
+
+    def pick(self, n):
+        cost = n * self.BASE_COST
+
+        # This goes over-cost easily, but that should be OK.
+        ret = []
+        while cost > 0:
+            et, ec = random.choice(self.pool)
+            ret.append(et)
+            cost -= ec
+        return ret
+
 class MinibossPool(object):
     def __init__(self):
         self.prev_miniboss = None

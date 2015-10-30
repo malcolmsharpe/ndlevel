@@ -37,6 +37,9 @@ item_pool = ItemPool()
 def gen_diag_level(floor):
     level = Level()
 
+    # Give each floor a different pool of enemies, for variety within the run.
+    enemy_pool = EnemyPoolRandom(floor)
+
     # Currently only generating zone 1 layouts with this method.
     zone = 0
 
@@ -54,8 +57,6 @@ def gen_diag_level(floor):
     ROOM_MAX_WIDTH = 7
     ROOM_MIN_HEIGHT = 4
     ROOM_MAX_HEIGHT = 6
-
-    enemy_pool = get_enemy_pool(floor)
 
     LAYERS = 3
 
@@ -207,7 +208,10 @@ def gen_diag_level(floor):
         if room.type == ROOM_EXIT:
             pop_per_room += 3
 
-        randomly_put_enemies(level, enemy_pool, available, pop_per_room)
+        enemies = enemy_pool.pick(pop_per_room)
+        random.shuffle(available)
+        for ((ex,ey), et) in zip(available, enemies):
+            level.put_enemy( Enemy(ex, ey, et) )
 
     # Put items in the item room.
     for i, (dx,dy) in enumerate(ITEM_POS):
